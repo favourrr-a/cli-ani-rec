@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import deque
+import heapq
 
 class Anime:
     def __init__(self, title, genres):
@@ -7,20 +8,27 @@ class Anime:
         self.genres = genres
 
 class GraphNode:
-    
     def __init__(self, anime:Anime):
         self.anime = anime
         self.neighbours = {}
         ## {neighbour: weight}
 
-    def add_neighbours(self, neighbours:list[GraphNode]):
-        n = len(self.anime.genres)
-        for neighbour in neighbours:
-            if self.anime == neighbour.anime:
+    def add_neighbours(self, potential_neighbours:list[GraphNode]):
+        similar_anime = []
+
+        for potential in potential_neighbours:
+            if self.anime == potential.anime:
                 continue
-            common_genres = len(self.anime.genres.intersection(neighbour.anime.genres))
-            if common_genres != 0:
-                self.neighbours[neighbour] = n - common_genres 
+            total_genres = len(self.anime.genres.union(potential.anime.genres))
+            common_genres = len(self.anime.genres.intersection(potential.anime.genres))
+            if common_genres == 0:
+                continue
+            weight = total_genres - common_genres + 1
+            if weight <= 3:
+                similar_anime.append((potential, weight))
+
+        top_similar = heapq.nsmallest(10, similar_anime, key = lambda x: x[1])
+        self.neighbours = {node: weight for node, weight in top_similar}
         
 class Graph:
     def __init__(self, nodes:list[GraphNode]):
