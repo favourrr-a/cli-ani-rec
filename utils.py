@@ -44,3 +44,16 @@ def create_anime_graph(anime_file, graph_name):
     anime_graph = Graph(anime_nodes)
     save_object(anime_graph, graph_name)
     return graph_name
+
+def get_info():
+    anime_count = int(input('Enter the number of input anime: '))
+    anime = []
+    for i in range(anime_count):
+        anime.append(input(f'Enter anime {i + 1}: '))
+    return anime
+
+def anime_to_nodes(anime:list[str], anime_graph):
+    return [anime_graph.get_node(ani) for ani in anime]
+
+def output_anime(anime:list[GraphNode]):
+    return [ani.anime.title for ani in anime]
