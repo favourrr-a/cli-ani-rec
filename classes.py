@@ -32,14 +32,22 @@ class GraphNode:
         
 class Graph:
     def __init__(self, nodes:list[GraphNode]):
-        self.nodes = nodes
+        self.nodes = {}
+        for node in nodes:
+            self.nodes[node.anime.title.lower()] = node
+
     def remove_nodes(self, nodes:list[GraphNode]):
         return
     def add_nodes(self, node:list[GraphNode]):
         return
+    
+    def get_node(self, title:str):
+        return self.nodes[title.lower()]
+    
     def display(self):
+        nodes = list(self.nodes.values())
         visited = set()
-        queue = deque([self.nodes[0]])
+        queue = deque([nodes[0]])
 
         while queue:
             current_node = queue.popleft()
@@ -50,6 +58,6 @@ class Graph:
                 queue.append(neighbour)
             print(current_node.anime.title)
         
-        for node in self.nodes:
+        for node in nodes:
             if node not in visited:
                 print(node.anime.title)
