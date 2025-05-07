@@ -1,28 +1,68 @@
 import heapq
+from collections import defaultdict
 
 from classes import GraphNode
 
 def recommend(anime:list[GraphNode]):
-    potential_recs = []
+    n = len(anime)
+    potential_recs = defaultdict(int)
 
-    if len(anime) == 1:
-        for neighbour in anime[0].neighbours:
-            potential_recs.append((neighbour, anime[0].neighbours[neighbour]))
-    else:
-        paths_between = []
-        for i in range(len(anime)):
-            for j in range(i, len(anime)):
-                paths_between.append((anime[i], anime[j]))  
-        for start, end in paths_between:
-            potential_recs.append(dijkstra(start, end))  
+    for i in range(n):
+        for j in range(i + 1, n):
+            path = dijkstra(anime[i], anime[j])
+            if not path:
+                continue
+            for ani in path:
+                if ani in anime:
+                    continue
+                potential_recs[ani] += 1/len(path)
+    
+    recs = sorted([(mid_count, ani) for ani, mid_count in potential_recs.items()], key=lambda x: x[0])
 
-    recs = heapq.nsmallest(3, potential_recs, key = lambda x: x[1])
-    sorted_recs = sorted(recs, key = lambda x: x[1])
+    return [rec[1] for rec in recs][:3]
 
-    return [rec[0] for rec in sorted_recs]
+def dijkstra(start:GraphNode, end:GraphNode, cache=None):    
+    if cache is None:
+        cache = {}
 
-def dijkstra(start:GraphNode, end:GraphNode):
+    cache_key = (start, end)
+    if cache_key in cache:
+        return cache[cache_key]
+    
+    counter = 0
+    queue = [(0, counter, start)]
+    visited = set()
+    best_dists = {start: 0}
+    prevs = {start: None}
+
+    while queue:
+        dist, _, node = heapq.heappop(queue)
+        if node in visited:
+            continue
+        visited.add(node)
+        if node == end:
+            break
+        for neighbour, weight in node.neighbours.items():
+            if neighbour in visited:
+                continue
+            new_dist = dist + weight
+            counter += 1
+            if neighbour not in best_dists or new_dist < best_dists[neighbour]:
+                best_dists[neighbour] = new_dist
+                prevs[neighbour] = node
+                heapq.heappush(queue, (new_dist, counter, neighbour))
+
     shortest_path = []
+    curr_node = end
 
-    return shortest_path
+    if curr_node not in prevs:
+        cache[cache_key] = []
+        return []
+    
+    while curr_node is not None:
+        shortest_path.append(curr_node)
+        curr_node = prevs[curr_node]
 
+    cache[cache_key] = shortest_path[len(shortest_path):0:-1]
+
+    return cache[cache_key]
