@@ -1,5 +1,6 @@
 import pickle
 import csv
+from difflib import get_close_matches
 from classes import Anime, GraphNode, Graph
 
 def save_object(obj, file_name:str):
@@ -45,12 +46,26 @@ def create_anime_graph(anime_file, graph_name):
     save_object(anime_graph, graph_name)
     return graph_name
 
-def get_info():
-    anime_count = int(input('Enter the number of input anime: '))
-    anime = []
-    for i in range(anime_count):
-        anime.append(input(f'Enter anime {i + 1}: '))
-    return anime
+def get_valid_titles(anime_graph):
+    return list(anime_graph.nodes.keys())
+
+def get_info(valid_titles):
+    while True:
+        input_anime = input('Enter the anime you want recommendations based on:\n').split(',')
+        anime = [ani.strip() for ani in input_anime]
+
+        matched_anime = []
+        missing_anime = []
+        for ani in anime:
+            matched = get_close_matches(ani, valid_titles)
+            if matched:
+                matched_anime.append(matched[0])
+            else:
+                missing_anime.append(ani)
+        if not missing_anime:
+            return matched_anime
+
+        print(f"Some anime not found: {(", ").join(missing_anime)}. Retry")
 
 def anime_to_nodes(anime:list[str], anime_graph):
     return [anime_graph.get_node(ani) for ani in anime]
