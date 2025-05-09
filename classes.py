@@ -23,12 +23,20 @@ class GraphNode:
             common_genres = len(self.anime.genres.intersection(potential.anime.genres))
             if common_genres == 0:
                 continue
-            weight = total_genres - common_genres + 1
-            if weight <= 3:
+            weight = common_genres / total_genres
+            if weight >= 0.05:
                 similar_anime.append((potential, weight))
 
-        top_similar = heapq.nsmallest(10, similar_anime, key = lambda x: x[1])
-        self.neighbours = {node: weight for node, weight in top_similar}
+        if len(similar_anime) != 0:
+            similar_anime = heapq.nlargest(10, similar_anime, key = lambda x: x[1])
+            
+        self.neighbours = {node.anime.title: weight for node, weight in similar_anime}
+    
+    def get_neighbours(self, graph:Graph):
+        neighbours = []
+        for n in self.neighbours.keys():
+            neighbours.append((graph.nodes[n.lower()], self.neighbours[n]))
+        return neighbours
         
 class Graph:
     def __init__(self, nodes:list[GraphNode]):

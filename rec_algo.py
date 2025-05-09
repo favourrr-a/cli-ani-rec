@@ -1,15 +1,15 @@
 import heapq
 from collections import defaultdict
 
-from classes import GraphNode
+from classes import GraphNode, Graph
 
-def recommend(anime:list[GraphNode]):
+def recommend(anime:list[GraphNode], graph):
     n = len(anime)
     potential_recs = defaultdict(int)
 
     for i in range(n):
         for j in range(i + 1, n):
-            path = dijkstra(anime[i], anime[j])
+            path = dijkstra(anime[i], anime[j], graph)
             if not path:
                 continue
             for ani in path:
@@ -21,7 +21,8 @@ def recommend(anime:list[GraphNode]):
 
     return [rec[1] for rec in recs][:3]
 
-def dijkstra(start:GraphNode, end:GraphNode, cache=None):    
+
+def dijkstra(start:GraphNode, end:GraphNode, graph:Graph, cache=None):    
     if cache is None:
         cache = {}
 
@@ -42,7 +43,7 @@ def dijkstra(start:GraphNode, end:GraphNode, cache=None):
         visited.add(node)
         if node == end:
             break
-        for neighbour, weight in node.neighbours.items():
+        for neighbour, weight in node.get_neighbours(graph):
             if neighbour in visited:
                 continue
             new_dist = dist + weight
@@ -51,6 +52,7 @@ def dijkstra(start:GraphNode, end:GraphNode, cache=None):
                 best_dists[neighbour] = new_dist
                 prevs[neighbour] = node
                 heapq.heappush(queue, (new_dist, counter, neighbour))
+        print("getting perfect recommendations...")
 
     shortest_path = []
     curr_node = end
